@@ -1,0 +1,20 @@
+Package: penalty
+Type: Package
+Title: What's the link between the importance of a penalty and it being missed?
+Version: 0.1.0
+Author: Isaac Verminck
+Maintainer: Isaac Verminck <isaacverm@gmail.com>
+Description: Concise analysis of penalties in soccer.
+License: none
+Encoding: UTF-8
+LazyData: true
+Imports:
+    drake,
+    tidyverse,
+    httr
+RoxygenNote: 6.0.1
+Suggests:
+    knitr,
+    rmarkdown,
+    testthat
+VignetteBuilder: knitr
