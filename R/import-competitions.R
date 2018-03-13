@@ -9,13 +9,16 @@
 #' Response with information about each competition (id, label, level, ...)
 #'
 #' @details
-#' \code{get_competitions} is created by \code{get_premier_league}.
+#' \code{get_competitions} is based on \code{get_premier_league}.
 #' The request parameters are the page size and level of detail. These can't be changed since there are only a few
 #' sensible values. Page size is always fixed at 100 (we don't expect there would ever be more than 100 competitions
 #' in the UK) and the level of detail is 2 (meaning we get the maximum of info). Lower levels of detail don't include
 #' the season id and in most cases the season id is the main reason for running this function.
-get_competitions <- get_premier_league(parameters = list(pageSize = 100,
-                                                         detail = 2))
+get_competitions <- function() {
+  get_premier_league(resource = "competitions",
+                     parameters = list(pageSize = 100,
+                                       detail = 2))
+}
 
 #' @import httr
 #' @import purrr

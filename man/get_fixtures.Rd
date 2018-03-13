@@ -13,7 +13,9 @@ Response with information about each fixture (match id, attendance, ...)
 \code{get_fixtures} returns info about fixtures played.
 }
 \details{
-The complete response body is returned including info like headers and status code.
 The request parameters are the page size and level of detail. These can't be changed since there are only a few
 sensible values. Page size is always fixed at 1000 (we don't expect more than 1000 games in a single season).
+}
+\seealso{
+\code{\link{get_premier_league}}
 }
