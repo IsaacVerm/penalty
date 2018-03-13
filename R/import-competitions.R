@@ -72,20 +72,5 @@ extract_competition_ids <- function(response, competition) {
   return(ids)
 }
 
-get_fixtures <- function(season_id, competition_id) {
-  status <- status_code(GET("http://httpbin.org/get"))
-  # writeLines(status, "status.txt")
-}
 
-extract_matchids <- function(fixtures_json) {
-
-}
-
-get_textstream <- function(matchid) {
-
-}
-
-extract_events <- function(textstream_json) {
-
-}
 
