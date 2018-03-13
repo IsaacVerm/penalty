@@ -30,19 +30,20 @@ get_competitions <- function() {
 
 #' @import httr
 #' @import purrr
-#' @title Get the season ids for a specific competition.
+#' @title Get the ids for a specific competition.
 #'
 #' @description
-#' \code{extract_season_ids} gets the season ids for a specific competition.
+#' \code{extract_season_ids} gets the ids for a specific competition.
 #'
 #' @return
-#' Named character vector with id by season
+#' List of both the competition id and the season ids. The competition id is a single number, the season ids are
+#' a named character vector with id by season.
 #'
 #' @details
 #' You can only get the season ids for a single competition at a time
 #' @param response The response returned by \code{get_competitions}.
-#' @param competition Competition you want the ids from e.g. Premier League.
-extract_season_ids <- function(response, competition) {
+#' @param competition Competition you want the ids for e.g. Premier League.
+extract_competition_ids <- function(response, competition) {
   # response body
   body <- content(response)
 
@@ -54,14 +55,21 @@ extract_season_ids <- function(response, competition) {
   competition_ind <- which(competition_names == competition)
   selected_competition <- body$content[[competition_ind]]
 
-  # get season ids
+  # competition id
+  competition_id <- as.character(selected_competition[["id"]])
+
+  # season ids
   season_ids <- selected_competition[["compSeasons"]] %>%
     map_chr(~.[["id"]])
   season_ids <- as.character(as.integer(season_ids))
   names(season_ids) <- selected_competition[["compSeasons"]] %>%
     map_chr(~.[["label"]])
 
-  return(season_ids)
+  # bundle ids together
+  ids = list(competition = competition_id,
+             season = season_ids)
+
+  return(ids)
 }
 
 get_fixtures <- function(season_id, competition_id) {
