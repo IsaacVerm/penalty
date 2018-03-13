@@ -9,12 +9,13 @@ library(here)
 # load functions
 R.utils::sourceDirectory(paste(here(),"R", sep = "/"))
 
-# create workflow
+# import workflow
 workflow <- drake_plan(
   competitions = get_competitions(),
   competition_ids = extract_competition_ids(competitions, "Premier League"),
   fixtures = get_fixtures(competition_id = competition_ids$competition,
-                          season_id = competition_ids$season[["2017/18"]])
+                          season_id = competition_ids$season[["2017/18"]]),
+  match_ids = extract_match_ids(fixtures)
 )
 
 # run workflow

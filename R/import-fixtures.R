@@ -22,6 +22,13 @@ get_fixtures <- function(competition_id, season_id) {
                      parameters)
 }
 
-extract_matchids <- function(response) {
+extract_match_ids <- function(response) {
+  # response body
+  body <- content(response)$content
 
+  # ids
+  ids <- body %>% map_chr(~.[["id"]])
+  ids <- as.character(as.integer(ids))
+
+  return(ids)
 }
