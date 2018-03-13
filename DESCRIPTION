@@ -10,8 +10,8 @@ Encoding: UTF-8
 LazyData: true
 Imports:
     drake,
-    tidyverse,
-    httr
+    httr,
+    purrr
 RoxygenNote: 6.0.1
 Suggests:
     knitr,

@@ -1,6 +1,4 @@
-library(httr)
-library(purrr)
-
+#' @import httr
 #' @title Get info about the competitions available.
 #'
 #' @description
@@ -30,6 +28,8 @@ get_competitions <- function() {
   return(competitions)
 }
 
+#' @import httr
+#' @import purrr
 #' @title Get the season ids for a specific competition.
 #'
 #' @description
@@ -64,7 +64,7 @@ extract_season_ids <- function(response, competition) {
   return(season_ids)
 }
 
-get_fixtures <- function(season, competition) {
+get_fixtures <- function(season_id, competition_id) {
   status <- status_code(GET("http://httpbin.org/get"))
   # writeLines(status, "status.txt")
 }
