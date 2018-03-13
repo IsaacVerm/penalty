@@ -1,18 +1,19 @@
 # file has number in front of it so it's loaded before the other files (import-resource) using it
 
 #' @import httr
-#' @title Create functions making GET request to the Premier League API.
+#' @title Helper for functions making GET request to the Premier League API.
 #'
 #' @description
-#' \code{get_premier_league} creates functions making GET request to the Premier League API.
+#' \code{get_premier_league} is a helper for functions making GET request to the Premier League API.
 #'
 #' @return
-#' Function to make GET request to Premier League API.
+#' Response including status code, body, ...
 #'
 #' @param parameters List of parameters
+#' @param resource Type of resource you want to get
 #'
 #' @details
-#' Function created will return the complete response body including info like headers and status code.
+#' Function not called directly.
 get_premier_league <- function(resource, parameters) {
 
     # url

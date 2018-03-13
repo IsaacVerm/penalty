@@ -2,17 +2,19 @@
 rm(list=ls())
 
 # load packages
-# library(httr)
-# library(drake)
-# library(roxygen2)
+library(drake)
+library(R.utils)
+library(here)
 
 # load functions
-source("~/penalties/lib/functions/import.R")
+R.utils::sourceDirectory(paste(here(),"R", sep = "/"))
 
 # create workflow
 workflow <- drake_plan(
   competitions = get_competitions(),
-  competition_ids = extract_competition_ids(competitions, "Premier League")
+  competition_ids = extract_competition_ids(competitions, "Premier League"),
+  fixtures = get_fixtures(competition_id = competition_ids$competition,
+                          season_id = competition_ids$season[["2017/18"]])
 )
 
 # run workflow

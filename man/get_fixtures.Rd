@@ -4,7 +4,12 @@
 \alias{get_fixtures}
 \title{Get played fixtures.}
 \usage{
-get_fixtures(season_id, competition_id)
+get_fixtures(competition_id, season_id)
+}
+\arguments{
+\item{competition_id}{Can be obtained through the competitions resource.}
+
+\item{season_id}{Can be obtained through the competitions resource.}
 }
 \value{
 Response with information about each fixture (match id, attendance, ...)

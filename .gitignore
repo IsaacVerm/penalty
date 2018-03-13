@@ -4,3 +4,6 @@ inst/doc
 # RStudio
 .Rproj*
 .Rproj.user
+
+# drake
+.drake*

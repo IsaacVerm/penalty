@@ -5,6 +5,9 @@
 #' @description
 #' \code{get_fixtures} returns info about fixtures played.
 #'
+#' @param competition_id Can be obtained through the competitions resource.
+#' @param season_id Can be obtained through the competitions resource.
+#'
 #' @return
 #' Response with information about each fixture (match id, attendance, ...)
 #'

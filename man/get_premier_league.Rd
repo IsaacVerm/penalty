@@ -2,19 +2,21 @@
 % Please edit documentation in R/1_import.R
 \name{get_premier_league}
 \alias{get_premier_league}
-\title{Create functions making GET request to the Premier League API.}
+\title{Helper for functions making GET request to the Premier League API.}
 \usage{
 get_premier_league(resource, parameters)
 }
 \arguments{
+\item{resource}{Type of resource you want to get}
+
 \item{parameters}{List of parameters}
 }
 \value{
-Function to make GET request to Premier League API.
+Response including status code, body, ...
 }
 \description{
-\code{get_premier_league} creates functions making GET request to the Premier League API.
+\code{get_premier_league} is a helper for functions making GET request to the Premier League API.
 }
 \details{
-Function created will return the complete response body including info like headers and status code.
+Function not called directly.
 }
