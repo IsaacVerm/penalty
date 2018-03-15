@@ -1,3 +1,6 @@
+# preliminary remarks
+# run devtools::test() before building anything to make sure all functions work properly
+
 # clear workspace
 rm(list=ls())
 
