@@ -15,7 +15,7 @@ if (length(setup_files_to_remove) > 0) {
 context("save_match_details")
 
 # setup
-match_ids <- c("22342","22344")
+match_ids <- c("22643","22645","22342", "22344") # e.g. 22643 has no attendance value
 responses <- match_ids %>%  map(get_textstream)
 list_match_details <- responses %>% map(extract_match_details) # get list of match_details
 
@@ -25,7 +25,7 @@ load(paste(data_path, "import-df_match_details.RData", sep = "/")) # save and lo
 # run tests
 test_that("file import-df_match_details.RData is saved in project_root/data", {
   saved_files <- dir(data_path)
-  
+
   expect_true("import-df_match_details.RData" %in% saved_files)
 })
 
@@ -53,7 +53,7 @@ load(paste(data_path, "import-df_player_ids.RData", sep = "/")) # save and load 
 # run tests
 test_that("file import-df_player_ids.RData is saved in project_root/data", {
   saved_files <- dir(data_path)
-  
+
   expect_true("import-df_player_ids.RData" %in% saved_files)
 })
 
@@ -66,7 +66,7 @@ test_that("df_player_ids only has one column called player_id", {
 })
 
 test_that("df_player_ids isnt't empty", {
-  expect_true(nrow(df_player_ids) > 1) 
+  expect_true(nrow(df_player_ids) > 1)
 })
 
 # clean
