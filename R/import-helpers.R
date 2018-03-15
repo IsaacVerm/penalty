@@ -39,6 +39,8 @@ save_match_details <- function(list_match_details) {
   save(df_match_details, file = paste(here(),"data","import-df_match_details.RData", sep = "/"))
 }
 
-save_player_ids <- function(list_player_ids) {
+save_player_ids <- function(player_ids) {
+  df_player_ids <- data.frame(player_id = player_ids)
   
+  save(df_player_ids, file = paste(here(),"data","import-df_player_ids.RData", sep = "/"))
 }

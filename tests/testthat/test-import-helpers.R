@@ -44,15 +44,29 @@ test_that("df_match_details isnt't empty", {
 context("save_player_ids")
 
 # setup
+players <- get_players("79")
+player_ids <- extract_player_ids(players)
+
+save_player_ids(player_ids)
+load(paste(data_path, "import-df_player_ids.RData", sep = "/")) # save and load back into memory
 
 # run tests
-test_that("file is saved in project_root/data", {
-})
-
-test_that("file is called save_player_ids" , {
+test_that("file import-df_player_ids.RData is saved in project_root/data", {
+  saved_files <- dir(data_path)
+  
+  expect_true("import-df_player_ids.RData" %in% saved_files)
 })
 
 test_that("file saved is dataframe", {
+  expect_is(df_player_ids, 'data.frame')
+})
+
+test_that("df_player_ids only has one column called player_id", {
+  expect_named(df_player_ids, "player_id")
+})
+
+test_that("df_player_ids isnt't empty", {
+  expect_true(nrow(df_player_ids) > 1) 
 })
 
 # clean
