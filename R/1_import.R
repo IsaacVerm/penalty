@@ -14,7 +14,7 @@
 #'
 #' @details
 #' Function not called directly.
-get_premier_league <- function(resource, parameters) {
+get_premier_league <- function(resource, parameters, timeout_in_sec = 5) {
 
     # url
     premier_league_url <- "https://footballapi.pulselive.com/football"
@@ -26,7 +26,8 @@ get_premier_league <- function(resource, parameters) {
     # request
     response <- GET(resource_url,
                     query = parameters,
-                    add_headers(.headers = headers))
+                    add_headers(.headers = headers),
+                    timeout(timeout_in_sec))
 
     return(response)
     }
