@@ -2,8 +2,7 @@
 rm(list=ls())
 
 # clean up work done by make (only for testing purposes)
-clean(list = c(workflow$target, "workflow"),
-      destroy = TRUE)
+clean(destroy = TRUE)
 
 # load package
 library(drake)
@@ -18,11 +17,12 @@ import_workflow <- drake_plan(
   fixtures = get_fixtures(competition_id = competition_ids$competition,
                           season_id = competition_ids$season[[selected_season]]),
   match_ids = extract_match_ids(fixtures),
-  textstreams = match_ids[1:5] %>% map(get_textstream),
+  textstreams = match_ids[1:10] %>% map(get_textstream),
   # textstreams = match_ids %>% map(get_textstream)
-  match_details = textstreams %>% map(extract_match_details)
-  player_ids = ""
+  match_details = textstreams %>% map(extract_match_details),
+  players = get_players(competition_ids$season[[selected_season]]),
+  player_ids = extract_player_ids(players)
 )
 
 # run workflow
-make(workflow)
+make(import_workflow)
