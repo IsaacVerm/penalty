@@ -24,8 +24,12 @@ import_workflow <- drake_plan(
   # textstreams = match_ids %>% map(get_textstream)
   match_details = textstreams %>% map(extract_match_details),
   players = get_players(competition_ids$season[[selected_season]]),
-  player_ids = extract_player_ids(players)
+  player_ids = extract_player_ids(players),
+  call_match_details = save_match_details(match_details), # placeholder when function is called for its side-effects
+  call_player_ids = save_player_ids(player_ids)
 )
+
+# put workflow together
 
 # run workflow
 make(import_workflow)
