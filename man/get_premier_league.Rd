@@ -4,7 +4,7 @@
 \alias{get_premier_league}
 \title{Helper for functions making GET request to the Premier League API.}
 \usage{
-get_premier_league(resource, parameters)
+get_premier_league(resource, parameters, timeout_in_sec = 5)
 }
 \arguments{
 \item{resource}{Type of resource you want to get}
