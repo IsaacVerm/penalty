@@ -14,10 +14,12 @@ Imports:
     dplyr,
     httr,
     here,
-    roxygen2
+    roxygen2,
+    covr
 RoxygenNote: 6.0.1
 Suggests:
     knitr,
     rmarkdown,
-    testthat
+    testthat,
+    covr
 VignetteBuilder: knitr
