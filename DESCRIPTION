@@ -14,8 +14,7 @@ Imports:
     dplyr,
     httr,
     here,
-    roxygen2,
-    covr
+    roxygen2
 RoxygenNote: 6.0.1
 Suggests:
     knitr,

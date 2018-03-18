@@ -11,6 +11,7 @@
 #'
 #' @param parameters List of parameters
 #' @param resource Type of resource you want to get
+#' @param timeout_in_sec After this amount of time a time-out error is thrown
 #'
 #' @details
 #' Function not called directly.

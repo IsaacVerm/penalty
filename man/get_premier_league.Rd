@@ -10,6 +10,8 @@ get_premier_league(resource, parameters, timeout_in_sec = 5)
 \item{resource}{Type of resource you want to get}
 
 \item{parameters}{List of parameters}
+
+\item{timeout_in_sec}{After this amount of time a time-out error is thrown}
 }
 \value{
 Response including status code, body, ...
