@@ -1,3 +1,4 @@
+#' @import httr
 #' @seealso \code{\link{get_premier_league}}
 #'
 #' @title Get info about the competitions available.

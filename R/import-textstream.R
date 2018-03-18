@@ -1,3 +1,4 @@
+#' @import httr
 get_textstream <- function(matchid) {
   resource <- paste("fixtures", matchid, "textstream/EN", sep = "/")
 
@@ -9,6 +10,8 @@ get_textstream <- function(matchid) {
   return(response)
 }
 
+#' @import httr
+#' @import purrr
 extract_match_details <- function(response) {
   body <- content(response)
 

@@ -1,3 +1,4 @@
+#' @import httr
 #' @seealso \code{\link{get_premier_league}}
 #'
 #' @title Get played fixtures.
@@ -22,6 +23,8 @@ get_fixtures <- function(competition_id, season_id) {
                      parameters)
 }
 
+#' @import purrr
+#' @import httr
 extract_match_ids <- function(response) {
   # response body
   body <- content(response)$content
