@@ -8,6 +8,8 @@ Description: Concise analysis of penalties in soccer.
 License: GPL
 Encoding: UTF-8
 LazyData: true
+Depends:
+    DiagrammeR
 Imports:
     purrr,
     tidyr,

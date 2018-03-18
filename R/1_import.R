@@ -9,13 +9,16 @@
 #' @return
 #' Response including status code, body, ...
 #'
-#' @param parameters List of parameters
-#' @param resource Type of resource you want to get
-#' @param timeout_in_sec After this amount of time a time-out error is thrown
+#' @param parameters list of parameters
+#' @param resource type of resource you want to get
+#' @param timeout_in_sec after this amount of time a time-out error is thrown
+#' @param wait_in_sec idle time in seconds before actual request (as a matter of decency it's common not to flood the server with requests)
 #'
 #' @details
 #' Function not called directly.
-get_premier_league <- function(resource, parameters, timeout_in_sec = 5) {
+get_premier_league <- function(resource, parameters, timeout_in_sec = 5, wait_in_sec = 1) {
+    # wait
+    Sys.sleep(wait_in_sec)
 
     # url
     premier_league_url <- "https://footballapi.pulselive.com/football"

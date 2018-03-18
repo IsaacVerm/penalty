@@ -39,8 +39,16 @@ extract_match_details <- function(response) {
   }
 
   match_details <- list()
-  match_details$gameweek <- as.character(body[["fixture"]][["gameweek"]][["gameweek"]])
-  match_details$attendance <- as.character(body[["fixture"]][["attendance"]])
+
+  match_details$game <- list()
+  match_details[["game"]][["game_id"]] <- as.character(body[["fixture"]][["id"]])
+  match_details[["game"]][["gameweek"]] <- as.character(body[["fixture"]][["gameweek"]][["gameweek"]])
+  match_details[["game"]][["attendance"]] <- as.character(body[["fixture"]][["attendance"]])
+  match_details[["game"]][["home_team"]] <- as.character(body[["fixture"]][["teams"]][[1]][["team"]][["name"]])
+  match_details[["game"]][["away_team"]] <- as.character(body[["fixture"]][["teams"]][[2]][["team"]][["name"]])
+  match_details[["game"]][["home_score"]] <- as.character(body[["fixture"]][["teams"]][[1]][["score"]])
+  match_details[["game"]][["away_score"]] <- as.character(body[["fixture"]][["teams"]][[2]][["score"]])
+  match_details[["game"]][["date"]] <- as.character(body[["fixture"]][["provisionalKickoff"]][["label"]])
 
   raw_events <- body[["events"]][["content"]]
   match_details$events <- raw_events %>%

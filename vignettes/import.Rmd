@@ -1,0 +1,143 @@
+---
+title: "Import"
+author: "Isaac Verminck"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Penalty}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r global options, include=FALSE}
+
+library(knitr)
+
+opts_chunk$set(echo=FALSE,
+               warning=FALSE,
+               message=FALSE,
+               cache=TRUE)
+
+```
+
+```{r setup, cache=FALSE}
+
+# load own package
+devtools::load_all(here::here())
+
+# load other packages
+library(purrr) # needed to iterate functions (bit excessive to create extra functions to handle this + it's important to see the flow)
+
+```
+
+
+# Data source
+
+The data used for this analysis can be obtained by using the [Premier League API](https://footballapi.pulselive.com/football). The API itself isn't documented but by browsing the site and keeping an eye on the requests sent by the browser it's not too difficult to deduce what REST requests have been sent and what their purpose is. For example the *Developer Console* in Chrome is ideal for this purpose.
+
+Other sources for data exist (e.g. [marketplace](https://market.mashape.com/heisenbug/premier-league-live-scores)) but the information returned by these APIs seemed less detailed than the information provided by the Premier League API itself.
+
+# Operationalization
+
+As stated in the introduction the question we want to answer is if there's a link between the importance of a penalty and it being missed or not.
+We make this vague notion of importance of a penalty more concrete in two ways:
+
+* the importance within the match
+* the importance within the league
+
+## Within the match
+
+It's clear a penalty in the last minute with both teams having scored the same number of goals is way more important than a penalty in the 30th minute when one team is already leading 4-0. So we have to keep track of two things:
+
+* the match decisiveness of the penalty
+* time left till the end of the match
+
+Match decisiveness is linked to the score at the moment of taking the penalty. E.g. a drawish score is highly match decisive, a large score difference isn't.
+
+## Within the league
+
+Some matches are more important than other ones. Some factors are at play:
+
+* number of matches left 
+* opponent
+
+Number of matches left is a bit similar to the time left within the match. Matches at the end of the competion can make a large difference (whether or not the team qualifies for any European leagues the next year, whether or not a team is relegated). 
+
+Matches played against direct competitors are more important than other matches. A small team can expect to lose against a strong team and can expect other small teams to do the same. So these games aren't that important. 
+
+# Get data
+
+Based on the above we now know we need the following info:
+
+* time in the match when a penalty is taken (within the match)
+* score at the moment the penalty was taken (within the match)
+* game in which a penalty is taken (within the league)
+* teams participating in that match (within the league)
+* league position at the moment the penalty was taken (within the league)
+* whether or not that penalty was scored or not (both within the match and within the league)
+
+## Data within the match
+
+To obtain the data needed to calculate the importance within the match we have to make three requests to the Premier League API:
+
+```{r diagram_data_within_match}
+
+resources <- c("competitions","fixtures","textstream")
+info_obtained <- c("season ids","match ids","events and game info")
+
+diagram_data_within_match <- create_linear_resources_diagram(resources, info_obtained)
+render_diagram_as_tree(diagram_data_within_match)
+
+```
+
+The best way to understand the diagram above is to think in a recursive way. We want to end up with a list of events for all the matches we want. In addition we want to know to what match these events belong to. *textstream* returns the events for a single match. To scale this up we have to get a list of matches which is handled by *fixtures*. *fixtures* returns all the matches in a single season. If we want the data for multiple seasons we have to first call *competitions* so we have the ids of all seasons.
+
+Data is saved in groups of 10 matches to avoid memory issues.
+
+```{r get_data_within_match}
+
+# # season ids
+# competitions <- get_competitions()
+# competition_ids <- extract_competition_ids(response = competitions,
+#                                            competition = "Premier League")
+# 
+# season_ids <- competition_ids[["season"]]
+# competition_id <- competition_ids[["competition"]]
+# 
+# # match ids
+# match_ids <- season_ids %>%
+#   map(~get_fixtures(competition_id, .)) %>%
+#   map(~extract_match_ids(.)) %>%
+#   .[c("2017/18","2016/17")] %>% # for convenience reasons less data
+#   flatten_chr(.)
+
+# events and game info
+match_details <- match_ids %>%
+  # sample(., size = 10) %>% # for convenience reasons less data
+  map(~get_textstream(.)) %>%
+  map(~extract_match_details(.))
+
+# save
+ind <- 1:length(match_details)
+nr_of_matches_per_group <- 10
+split_ind <- split(ind, ceiling(seq_along(ind)/nr_of_matches_per_group))
+
+group_nrs <- as.character(1:length(split_ind))
+
+split_match_details <-  split_ind %>%
+  map(~match_details[.]) # if not split memory will probably be not sufficient enough
+
+# walk2(.x = split_match_details,
+#       .y = group_nrs,
+#       .f = ~save_events(list_match_details = .x, group_nr = .y))
+
+walk2(.x = split_match_details,
+      .y = group_nrs,
+      .f = ~save_games(list_match_details = .x, group_nr = .y))
+
+```
+
+
+
+
+

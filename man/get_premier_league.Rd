@@ -4,14 +4,17 @@
 \alias{get_premier_league}
 \title{Helper for functions making GET request to the Premier League API.}
 \usage{
-get_premier_league(resource, parameters, timeout_in_sec = 5)
+get_premier_league(resource, parameters, timeout_in_sec = 5,
+  wait_in_sec = 1)
 }
 \arguments{
-\item{resource}{Type of resource you want to get}
+\item{resource}{type of resource you want to get}
 
-\item{parameters}{List of parameters}
+\item{parameters}{list of parameters}
 
-\item{timeout_in_sec}{After this amount of time a time-out error is thrown}
+\item{timeout_in_sec}{after this amount of time a time-out error is thrown}
+
+\item{wait_in_sec}{idle time in seconds before actual request (as a matter of decency it's common not to flood the server with requests)}
 }
 \value{
 Response including status code, body, ...

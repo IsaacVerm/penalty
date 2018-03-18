@@ -1,12 +1,7 @@
-#
+# miscellaneous files
 inst/doc
 
 # RStudio
 .Rproj*
 .Rproj.user
 
-# drake
-.drake*
-
-# data
-data/*

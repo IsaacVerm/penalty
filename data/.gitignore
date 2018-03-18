@@ -1,0 +1,1 @@
+# if you clone the repository but the data directory is empty (like it should be) the directory wouldn't be cloned (since git only cares about files and not directories). Instead of recreating the data directory on every run, rather have a placeholder so the directory is always cloned.

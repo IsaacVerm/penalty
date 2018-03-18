@@ -20,7 +20,8 @@ get_fixtures <- function(competition_id, season_id) {
                      compSeasons = season_id,
                      pageSize = 1000)
   get_premier_league(resource = "fixtures",
-                     parameters)
+                     parameters,
+                     timeout_in_sec = 30)
 }
 
 #' @import purrr
