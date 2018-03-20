@@ -85,12 +85,12 @@ save_games <- function(list_match_details, group_nr) {
 # other way of doing this: no list but each player saved individually and then joined together later on during wrangling
 player_details_to_df <- function(player_details) {
 
+  # helpers
   basic_column_names <- c("position","birthdate","first_name","last_name")
   full_column_names <- c(basic_column_names,"appearances","minutes_played") # including stats
 
-  # possible to have succesful response but empty
+  # special cases of empty response
   create_empty_df <- function() {
-
     mat <- matrix(rep(NA, length(full_column_names)),
                   nrow = 1)
 
@@ -102,26 +102,35 @@ player_details_to_df <- function(player_details) {
   }
 
   if (player_details == "no player details found") {
-    return(create_empty_df())
+    df_player_details <- create_empty_df()
   }
 
   # list to dataframe
   df_player_details <- data.frame(as.list(unlist(player_details)))
 
   # readable column names
-  contains_stat_columns <- any(grepl("stats", names(df_player_details)))
+  contains_stat_columns <- any(grepl("stats", names(df_player_details))) & length(df_player_details) == 6
+  contains_basic_columns <- length(df_player_details) == 4
+  misses_columns <- !contains_stat_columns & !contains_basic_columns
 
   if (contains_stat_columns) {
     names(df_player_details) <- full_column_names
-  } else {
+  }
+  if (contains_basic_columns) {
     names(df_player_details) <- basic_column_names
     df_player_details$appearances <- NA
     df_player_details$minutes_played <- NA
+  }
+  if (misses_columns) {
+    df_player_details <- create_empty_df()
   }
 
   return(df_player_details)
 }
 
-save_player_details <- function(df_player_details) {
+# nr
+save_player_details <- function(df_player_details, identifier) {
 
+  save_name <- paste(identifier, "import-df_player.RData", sep = "-")
+  save(df_player_details, file = paste(here::here(),"data", save_name, sep = "/"))
 }
