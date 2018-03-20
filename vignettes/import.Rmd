@@ -187,9 +187,11 @@ walk2(.x = df_player_details,
 
 ```
 
-So now we have 3 datasets which we can all connect if we want:
+So now we have 3 datasets which can all be connected:
 
 ```{r diagram_datasets}
 diagram_datasets <- create_datasets_diagram()
+render_diagram_as_tree(diagram_datasets)
+
 
 ```
