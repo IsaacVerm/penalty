@@ -13,6 +13,12 @@ get_player <- function(player_id, competition_id) {
 #' @import httr
 #' @import purrr
 extract_player_details <- function(response) {
+  # sometimes response is succesful but empty
+  empty_response <- length(response$content) == 0
+  if (empty_response) {
+    return("no player details found")
+  }
+
   # response body
   body <- content(response)
 

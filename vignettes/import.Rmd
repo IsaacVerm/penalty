@@ -16,7 +16,7 @@ library(knitr)
 opts_chunk$set(echo=FALSE,
                warning=FALSE,
                message=FALSE,
-               cache=TRUE)
+               cache=FALSE)
 
 ```
 
@@ -80,36 +80,36 @@ Based on the above we now know we need the following info:
 
 To obtain the data needed to calculate the importance within the match we have to make three requests to the Premier League API:
 
-```{r diagram_data_within_match}
+```{r diagram_events}
 
 resources <- c("competitions","fixtures","textstream")
 info_obtained <- c("season ids","match ids","events and game info")
 
-diagram_data_within_match <- create_linear_resources_diagram(resources, info_obtained)
-render_diagram_as_tree(diagram_data_within_match)
+diagram_events <- create_linear_resources_diagram(resources, info_obtained)
+render_diagram_as_tree(diagram_events)
 
 ```
 
 The best way to understand the diagram above is to think in a recursive way. We want to end up with a list of events for all the matches we want. In addition we want to know to what match these events belong to. *textstream* returns the events for a single match. To scale this up we have to get a list of matches which is handled by *fixtures*. *fixtures* returns all the matches in a single season. If we want the data for multiple seasons we have to first call *competitions* so we have the ids of all seasons.
 
-Data is saved in groups of 10 matches to avoid memory issues.
+Data is saved in groups of 10 matches to avoid memory issues. Because getting the data can take quite a lot of time we limit ourselves to two seasons (2017/18 and 2016/17). 
 
-```{r get_data_within_match}
+```{r get_events, eval = FALSE}
 
-# # season ids
-# competitions <- get_competitions()
-# competition_ids <- extract_competition_ids(response = competitions,
-#                                            competition = "Premier League")
-# 
-# season_ids <- competition_ids[["season"]]
-# competition_id <- competition_ids[["competition"]]
-# 
-# # match ids
-# match_ids <- season_ids %>%
-#   map(~get_fixtures(competition_id, .)) %>%
-#   map(~extract_match_ids(.)) %>%
-#   .[c("2017/18","2016/17")] %>% # for convenience reasons less data
-#   flatten_chr(.)
+# season ids
+competitions <- get_competitions()
+competition_ids <- extract_competition_ids(response = competitions,
+                                           competition = "Premier League")
+
+season_ids <- competition_ids[["season"]]
+competition_id <- competition_ids[["competition"]]
+
+# match ids
+match_ids <- season_ids %>%
+  map(~get_fixtures(competition_id, .)) %>%
+  map(~extract_match_ids(.)) %>%
+  .[c("2017/18","2016/17")] %>% # for convenience reasons less data
+  flatten_chr(.)
 
 # events and game info
 match_details <- match_ids %>%
@@ -127,9 +127,9 @@ group_nrs <- as.character(1:length(split_ind))
 split_match_details <-  split_ind %>%
   map(~match_details[.]) # if not split memory will probably be not sufficient enough
 
-# walk2(.x = split_match_details,
-#       .y = group_nrs,
-#       .f = ~save_events(list_match_details = .x, group_nr = .y))
+walk2(.x = split_match_details,
+      .y = group_nrs,
+      .f = ~save_events(list_match_details = .x, group_nr = .y))
 
 walk2(.x = split_match_details,
       .y = group_nrs,
@@ -137,7 +137,57 @@ walk2(.x = split_match_details,
 
 ```
 
+Unfortunately we can't directly know what player is involved in a certain event. However, we do get the player id. In order to get from the player id to the player name we have to make one other request to the *players* resource. Although not strictly necessary an additional call to the *player* resource is made to obtain some interesting stats for each player as well as their preferred position and birthdate.
+
+```{r diagram_player_names}
+
+resources <- c("players","player")
+info_obtained <- c("player name","stats, position and birthdate")
+
+diagram_player_names <- create_linear_resources_diagram(resources, info_obtained)
+render_diagram_as_tree(diagram_player_names)
+
+```
 
 
+So the first call to *players* gives us a list of all players with their respective player ids. Afterwards we make a call to *player* for each player to obtain their names and some more stats.
 
+```{r get_player, cache=TRUE}
+
+# season ids
+competitions <- get_competitions()
+competition_ids <- extract_competition_ids(response = competitions,
+                                           competition = "Premier League")
+
+selected_seasons <- c("2017/18","2016/17")
+season_ids <- competition_ids[["season"]][selected_seasons]
+
+# list of player ids
+player_ids <- season_ids %>% 
+  map(~get_players(season_id = .)) %>% 
+  map(~extract_player_ids(response = .)) %>% 
+  unlist()
+
+# stats for each player
+competition_id = competition_ids[["competition"]]
+
+player_details <- sample(player_ids, size = 10) %>%
+  map(~get_player(player_id = ., competition_id)) %>%
+  map(~extract_player_details(response = .))
+
+# save
+ind <- 1:length(player_details)
+nr_of_players_per_group <- 10
+split_ind <- split(ind, ceiling(seq_along(ind)/nr_of_players_per_group))
+
+group_nrs <- as.character(1:length(split_ind))
+
+split_player_details <-  split_ind %>%
+  map(~player_details[.]) # if not split memory will probably be not sufficient enough
+
+walk2(.x = split_player_details,
+      .y = group_nrs,
+      .f = ~save_events(list_player_details = .x, group_nr = .y))
+
+```
 

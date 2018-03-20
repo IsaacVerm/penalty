@@ -1,12 +1,12 @@
-# # setup common to all tests
-#
-# if (length(ls()) > 0) {
-#   rm(list = ls()) # remove objects in working directory (if any)
-# }
-#
-# project_root <- here::here()
-# data_path <- paste(project_root,"data", sep = "/") # variables used by all tests
-#
+# setup common to all tests
+
+if (length(ls()) > 0) {
+  rm(list = ls()) # remove objects in working directory (if any)
+}
+
+project_root <- here::here()
+data_path <- paste(project_root,"data", sep = "/") # variables used by all tests
+
 # setup_files_to_remove <- dir(path = data_path,
 #                              pattern = "import*")
 # if (length(setup_files_to_remove) > 0) {
@@ -100,3 +100,43 @@
 #
 # rm(list = ls()) # remove objects in working directory
 #
+context("player_details_to_df")
+
+complete_player <- get_player(player_id = "5110", competition_id = "1")
+complete_player_details <- extract_player_details(complete_player)
+df_complete_player <- player_details_to_df(complete_player_details)
+
+no_stats_player <- get_player(player_id = "26152", competition_id = "1")
+no_stats_player_details <- extract_player_details(no_stats_player)
+df_no_stats_player <- player_details_to_df(no_stats_player_details)
+
+empty_player <- get_player(player_id = "90794", competition_id = "1")
+empty_player_details <- extract_player_details(empty_player)
+df_empty_player <- player_details_to_df(empty_player_details)
+
+test_that("returns dataframe", {
+  expect_is(df_empty_player, "data.frame")
+  expect_is(df_complete_player, "data.frame")
+  expect_is(df_no_stats_player, "data.frame")
+})
+
+test_that("columns are position, birthdate, name and stats", {
+  expected_columns <- c("position","birthdate","first_name","last_name","appearances","minutes_played")
+
+  expect_named(df_complete_player, expected_columns)
+  expect_named(df_no_stats_player, expected_columns)
+  expect_named(df_empty_player, expected_columns)
+})
+
+test_that("stats columns empty when no stats available", {
+  stats_columns <- c("appearances","minutes_played")
+
+  df_empty_stats <- select(df_no_stats_player, one_of(stats_columns))
+
+  nr_empty_columns <- apply(X = df_empty_stats,
+                            MARGIN = 1, # row-wise calculation
+                            FUN = function(x) sum(is.na(x)))
+
+  expect_equal(nr_empty_columns, ncol(df_empty_stats))
+})
+

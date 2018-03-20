@@ -82,8 +82,46 @@ save_games <- function(list_match_details, group_nr) {
 
 }
 
-save_player_ids <- function(player_ids) {
-  df_player_ids <- data.frame(player_id = player_ids)
+# other way of doing this: no list but each player saved individually and then joined together later on during wrangling
+player_details_to_df <- function(player_details) {
 
-  save(df_player_ids, file = paste(here::here(),"data","import-df_player_ids.RData", sep = "/"))
+  basic_column_names <- c("position","birthdate","first_name","last_name")
+  full_column_names <- c(basic_column_names,"appearances","minutes_played") # including stats
+
+  # possible to have succesful response but empty
+  create_empty_df <- function() {
+
+    mat <- matrix(rep(NA, length(full_column_names)),
+                  nrow = 1)
+
+    empty_df <- data.frame(mat)
+
+    names(empty_df) <- full_column_names
+
+    return(empty_df)
+  }
+
+  if (player_details == "no player details found") {
+    return(create_empty_df())
+  }
+
+  # list to dataframe
+  df_player_details <- data.frame(as.list(unlist(player_details)))
+
+  # readable column names
+  contains_stat_columns <- any(grepl("stats", names(df_player_details)))
+
+  if (contains_stat_columns) {
+    names(df_player_details) <- full_column_names
+  } else {
+    names(df_player_details) <- basic_column_names
+    df_player_details$appearances <- NA
+    df_player_details$minutes_played <- NA
+  }
+
+  return(df_player_details)
+}
+
+save_player_details <- function(df_player_details) {
+
 }
