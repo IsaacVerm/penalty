@@ -1,0 +1,142 @@
+---
+title: "Tidy"
+author: "Isaac Verminck"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Penalty}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r global options, include=FALSE}
+
+library(knitr)
+
+opts_chunk$set(echo=FALSE,
+               warning=FALSE,
+               message=FALSE,
+               cache=FALSE)
+
+```
+
+```{r setup, cache=FALSE}
+
+# load own package
+devtools::load_all(here::here())
+
+```
+
+# Load data
+
+Before we can do any tidying let's load the data we previously imported.
+
+```{r load_events}
+
+events_identifiers <- get_identifiers("events")
+
+list_events <- events_identifiers %>%
+  purrr::map(~load_for_same_name(type_of_data = "events", identifier = .))
+
+```
+
+```{r load_players}
+
+player_identifiers <- get_identifiers("player")
+
+list_players <- player_identifiers %>%
+  purrr::map(~load_for_same_name(type_of_data = "player", identifier = .))
+
+```
+
+```{r load_games}
+
+games_identifiers <- get_identifiers("games")
+
+list_games <- games_identifiers %>%
+  purrr::map(~load_for_same_name(type_of_data = "games", identifier = .))
+
+
+```
+
+
+# Actual tidying
+
+## Events
+
+### Bind all dataframes together
+
+First we bind all events dataframes together.
+
+```{r bind_events}
+
+events <- dplyr::bind_rows(list_events)
+                        
+```
+
+### Sanity check enough data
+
+Let's make sure we have enough information about penalties, if not all additional work is pointless.
+
+```{r enough_penalties}
+
+types_of_events <- table(events$type)
+
+penalty_events <- dplyr::filter(events,
+                                stringr::str_detect(type, "penalty"))
+
+```
+
+There are a total of `r nrow(penalty_events)` penalty events which isn't too much but sufficient nonetheless. 
+
+
+The following graphs shows we're not systematically missing data.
+
+```{r no_systematically_missing_data}
+
+```
+
+### Understanding penalties
+
+```{r types_of_penalty_events}
+
+types_of_penalty_events <- table(penalty_events$type)
+
+```
+
+We notice there are 4 types of penalty events:
+
+* penalty lost
+* penalty miss
+* penalty saved
+* penalty won
+
+
+```{r types_of_penalty_events}
+
+# calculated so we can check manually what an event corresponds to
+game_ids_penalty_events <- penalty_events %>% 
+  dplyr::group_by(type) %>% 
+  dplyr::summarise(first(game_id))
+
+```
+
+Each penalty is recorded in 3 events of which two refer to the origin of the penalty and one to the outcome. 
+
+Origin:
+* penalty lost event (from the point of view of the defender)
+* penalty won event (from the point of view of the attacker)
+
+Outcome:
+* penalty miss
+* penalty saved
+* goal
+
+
+
+
+## Games
+
+## Players
+
+# Sanity check
