@@ -30,10 +30,3 @@ get_identifiers <- function(type_of_data) {
 
     return(identifiers)
 }
-
-# temp test
-
-games_identifiers <- get_identifiers("games")
-
-games <- games_identifiers %>%
-  map(~load_for_same_name(type_of_data = "games", identifier = .))

@@ -13,7 +13,7 @@ vignette: >
 
 library(knitr)
 
-opts_chunk$set(echo=FALSE,
+opts_chunk$set(echo=TRUE,
                warning=FALSE,
                message=FALSE,
                cache=FALSE)
@@ -60,23 +60,36 @@ list_games <- games_identifiers %>%
 ```
 
 
-# Actual tidying
+# Wrangling
 
-## Events
+The datasets we start off with are already tidy in a basic way:
 
-### Bind all dataframes together
+* each variable has its own column
+* each observation has its own row
+* each value has its own cell
 
-First we bind all events dataframes together.
+However, for each dataset there's still some work to be done. E.g. all datasets should at least be bound together (since at the start they all exist of separate dataframes).
 
-```{r bind_events}
+```{r bind_dataframes}
 
 events <- dplyr::bind_rows(list_events)
+games <- dplyr::bind_rows(list_games)
+players <- dplyr::bind_rows(list_players)
                         
 ```
 
-### Sanity check enough data
+We end up with a single dataframe.
 
-Let's make sure we have enough information about penalties, if not all additional work is pointless.
+For each dataset (events, games and players) we look at two things:
+
+* verify we have enough data
+* investigate the missing values
+
+## Events
+
+### Enough penalty events?
+
+Let's make sure we have enough information about penalty events, if not all additional work is pointless.
 
 ```{r enough_penalties}
 
@@ -89,54 +102,131 @@ penalty_events <- dplyr::filter(events,
 
 There are a total of `r nrow(penalty_events)` penalty events which isn't too much but sufficient nonetheless. 
 
+### Missing values
 
-The following graphs shows we're not systematically missing data.
+First have a look at the missing values by variable:
 
-```{r no_systematically_missing_data}
+```{r missing_values_events}
 
-```
-
-### Understanding penalties
-
-```{r types_of_penalty_events}
-
-types_of_penalty_events <- table(penalty_events$type)
+plot_count_bar(count_df = calc_n_na_by_var(events))
 
 ```
 
-We notice there are 4 types of penalty events:
+We don't have any missing values for the game id or type of event which is nice. However, the player id and time variables seem to be missing in quite a lot of cases. 
 
-* penalty lost
-* penalty miss
-* penalty saved
-* penalty won
+#### Missing player id variable
 
+A possible explanation for these missing values is that not all events are linked to a player (for example the start and end of the game are coded as events but don't involve any specific player), Let's see how many of the missing player ids can be explained by this:
 
-```{r types_of_penalty_events}
+```{r type_events_missing_player_ids}
 
-# calculated so we can check manually what an event corresponds to
-game_ids_penalty_events <- penalty_events %>% 
+type_events_missing_player_ids <- events %>%
+  dplyr::filter(is.na(player_id)) %>% 
+  .[["type"]] %>% 
+  table(.) %>% 
+  as.data.frame() %>% 
+  setNames(c("type","count"))
+
+plot_count_bar(variable = "type",
+               count_df = type_events_missing_player_ids)
+
+  
+
+```
+
+Almost all missing player ids occur when the event has nothing to do with a specific player. Makes sense. There's just one exception: free kick won. We imagine a free kick is always won by a player. If not, why say won when there can't be a winner? Let's see if this is just an accident de parcours by checking if there are also free kicks won where the player id is included.
+
+```{r free_kick_won_missing_values}
+
+free_kick_won_missing_values <- events %>%
+  dplyr::mutate(has_player_id = dplyr::if_else(is.na(player_id), FALSE, TRUE)) %>% 
+  dplyr::filter(type == "free kick won") %>% 
+  dplyr::group_by(has_player_id) %>%
+  dplyr::summarise(count = n())
+
+nr_truly_incorrect_missing_values <- free_kick_won_missing_values %>% 
+  dplyr::filter(has_player_id == FALSE) %>% 
+  .[["count"]]
+
+plot_count_bar(variable = "has_player_id",
+               count_df = free_kick_won_missing_values)
+
+```
+
+Most *free kick won* events actually do have a player id linked to them. These `r nr_truly_incorrect_missing_values` which don't are clearly a mistake. Now we have to decide whether to discard these events or not. Certainly we shouldn't assume that just because the player ids are not there the rest of the event information is faulty as well. Let's zoom in on these *free kick won* events where the player id is missing.
+
+```{r free_kick_won_missing_player_id}
+
+free_kick_won_missing_player_id <- events %>%
+  dplyr::filter(type == "free kick won" & is.na(player_id))
+
+free_kick_won_missing_player_id
+
+```
+
+There seems nothing wrong with these events except for the fact the player id is missing. For reasons of consistency we decide to keep these events in the dataset.
+
+#### Missing time variable
+
+The time variable is missing for a number of events as well. What kind of events don't have a timestamp?
+
+```{r time_missing_by_event_type}
+
+time_missing_by_event_type <- events %>% 
   dplyr::group_by(type) %>% 
-  dplyr::summarise(first(game_id))
+  dplyr::summarise(count = sum(is.na(time))) %>% 
+  dplyr::filter(count != 0)
+  
+plot_count_bar(variable = "type",
+               count_df = time_missing_by_event_type)  
 
 ```
 
-Each penalty is recorded in 3 events of which two refer to the origin of the penalty and one to the outcome. 
-
-Origin:
-* penalty lost event (from the point of view of the defender)
-* penalty won event (from the point of view of the attacker)
-
-Outcome:
-* penalty miss
-* penalty saved
-* goal
-
-
-
+It's normal there's no time information for these events.
 
 ## Games
 
+### Enough games?
+
+We have info about `r nrow(games)` games. In itself this doesn't mean anything. The games dataset is only useful if we can link it to the events dataset (the data we're really interested in). The games dataset is linked to the events dataset through the game id. So to verify if our games dataset is large enough we must make sure each game id of events occurs in games as well.
+
+```{r link_games_events}
+
+game_ids_events <- unique(events$game_id)
+game_ids_games <- unique(games$game_id)
+
+all(game_ids_events %in% game_ids_games)
+
+```
+
+This is the case so we have enough games.
+
+### Missing values
+
+What variables of games have missing values?
+
+```{r missing_values_games}
+missing_values_games <- calc_n_na_by_var(games)
+
+plot_count_bar(count_df = missing_values_games)
+
+```
+
+There seem to be about `r max(missing_values_games$count)` games with attendance, away score and home score missing. Luckily we don't have to worry about those missing variables. We can recalculate them based on the events. E.g if for a specific game a home player scores twice we know the score is 2-0.
+
 ## Players
 
-# Sanity check
+## Enough players?
+
+```{r empty_rows_players}
+
+nr_empty_rows_players <- complete
+  
+percentage_empty_rows_players <- 
+
+```
+
+
+First thing we notice is there are a lot of empty rows in the players dataset ()
+
+## Missing values

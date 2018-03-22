@@ -2,6 +2,7 @@
 
 import(DiagrammeR)
 import(dplyr)
+import(ggplot2)
 import(httr)
 import(purrr)
 import(stringr)

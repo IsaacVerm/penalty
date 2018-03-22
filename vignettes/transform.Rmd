@@ -1,0 +1,35 @@
+### Understanding penalties
+
+```{r types_of_penalty_events}
+
+types_of_penalty_events <- table(penalty_events$type)
+
+```
+
+We notice there are 4 types of penalty events:
+
+* penalty lost
+* penalty miss
+* penalty saved
+* penalty won
+
+
+```{r game_ids_penalty_events}
+
+# calculated so we can check manually what an event corresponds to
+game_ids_penalty_events <- penalty_events %>% 
+  dplyr::group_by(type) %>% 
+  dplyr::summarise(first(game_id))
+
+```
+
+Each penalty is recorded in 3 events of which two refer to the origin of the penalty and one to the outcome. 
+
+Origin:
+* penalty lost event (from the point of view of the defender)
+* penalty won event (from the point of view of the attacker)
+
+Outcome:
+* penalty miss
+* penalty saved
+* goal

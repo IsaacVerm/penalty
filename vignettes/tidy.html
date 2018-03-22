@@ -12,12 +12,50 @@
 
 <meta name="author" content="Isaac Verminck" />
 
-<meta name="date" content="2018-03-21" />
+<meta name="date" content="2018-03-22" />
 
 <title>Tidy</title>
 
 
 
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
 
 
 
@@ -32,31 +70,147 @@
 
 <h1 class="title toc-ignore">Tidy</h1>
 <h4 class="author"><em>Isaac Verminck</em></h4>
-<h4 class="date"><em>2018-03-21</em></h4>
+<h4 class="date"><em>2018-03-22</em></h4>
 
 
 
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># load own package</span>
+devtools<span class="op">::</span><span class="kw">load_all</span>(here<span class="op">::</span><span class="kw">here</span>())</code></pre></div>
 <div id="load-data" class="section level1">
 <h1>Load data</h1>
 <p>Before we can do any tidying let’s load the data we previously imported.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">events_identifiers &lt;-<span class="st"> </span><span class="kw">get_identifiers</span>(<span class="st">&quot;events&quot;</span>)
+
+list_events &lt;-<span class="st"> </span>events_identifiers <span class="op">%&gt;%</span>
+<span class="st">  </span>purrr<span class="op">::</span><span class="kw">map</span>(<span class="op">~</span><span class="kw">load_for_same_name</span>(<span class="dt">type_of_data =</span> <span class="st">&quot;events&quot;</span>, <span class="dt">identifier =</span> .))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">player_identifiers &lt;-<span class="st"> </span><span class="kw">get_identifiers</span>(<span class="st">&quot;player&quot;</span>)
+
+list_players &lt;-<span class="st"> </span>player_identifiers <span class="op">%&gt;%</span>
+<span class="st">  </span>purrr<span class="op">::</span><span class="kw">map</span>(<span class="op">~</span><span class="kw">load_for_same_name</span>(<span class="dt">type_of_data =</span> <span class="st">&quot;player&quot;</span>, <span class="dt">identifier =</span> .))</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">games_identifiers &lt;-<span class="st"> </span><span class="kw">get_identifiers</span>(<span class="st">&quot;games&quot;</span>)
+
+list_games &lt;-<span class="st"> </span>games_identifiers <span class="op">%&gt;%</span>
+<span class="st">  </span>purrr<span class="op">::</span><span class="kw">map</span>(<span class="op">~</span><span class="kw">load_for_same_name</span>(<span class="dt">type_of_data =</span> <span class="st">&quot;games&quot;</span>, <span class="dt">identifier =</span> .))</code></pre></div>
 </div>
-<div id="actual-tidying" class="section level1">
-<h1>Actual tidying</h1>
+<div id="wrangling" class="section level1">
+<h1>Wrangling</h1>
+<p>The datasets we start off with are already tidy in a basic way:</p>
+<ul>
+<li>each variable has its own column</li>
+<li>each observation has its own row</li>
+<li>each value has its own cell</li>
+</ul>
+<p>However, for each dataset there’s still some work to be done. E.g. all datasets should at least be bound together (since at the start they all exist of separate dataframes).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">events &lt;-<span class="st"> </span>dplyr<span class="op">::</span><span class="kw">bind_rows</span>(list_events)
+games &lt;-<span class="st"> </span>dplyr<span class="op">::</span><span class="kw">bind_rows</span>(list_games)</code></pre></div>
+<p>We end up with a single dataframe.</p>
 <div id="events" class="section level2">
 <h2>Events</h2>
-<p>First we bind all events dataframes together.</p>
-<p>Let’s make sure we have enough information about penalties, if not all additional work is pointless.</p>
-<p>There are a total of 368 penalty events which isn’t too much but sufficient nonetheless. We notice there are 4 types of penalty events:</p>
-<ul>
-<li>penalty lost</li>
-<li>penalty miss</li>
-<li>penalty saved</li>
-<li>penalty won</li>
-</ul>
-<p>The following graphs shows we’re not systematically missing data.</p>
+<div id="enough-penalty-events" class="section level3">
+<h3>Enough penalty events?</h3>
+<p>Let’s make sure we have enough information about penalty events, if not all additional work is pointless.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">types_of_events &lt;-<span class="st"> </span><span class="kw">table</span>(events<span class="op">$</span>type)
+
+penalty_events &lt;-<span class="st"> </span>dplyr<span class="op">::</span><span class="kw">filter</span>(events,
+                                stringr<span class="op">::</span><span class="kw">str_detect</span>(type, <span class="st">&quot;penalty&quot;</span>))</code></pre></div>
+<p>There are a total of 368 penalty events which isn’t too much but sufficient nonetheless.</p>
+</div>
+<div id="missing-values" class="section level3">
+<h3>Missing values</h3>
+<p>First have a look at the missing values by variable:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">calc_n_na_by_var</span>(events)</code></pre></div>
+<pre><code>##    variable    n
+## 1      type    0
+## 2 player_id 6474
+## 3      time  694
+## 4   game_id    0</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot_n_na_by_var</span>(<span class="kw">calc_n_na_by_var</span>(events))</code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>We don’t have any missing values for the game id or type of event which is nice. However, the player id and time variables seem to be missing in quite a lot of cases.</p>
+<div id="missing-player-id-variable" class="section level4">
+<h4>Missing player id variable</h4>
+<p>A possible explanation for these missing values is that not all events are linked to a player (for example the start and end of the game are coded as events but don’t involve any specific player), Let’s see how many of the missing player ids can be explained by this:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">type_events_missing_player_ids &lt;-<span class="st"> </span>events <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(<span class="kw">is.na</span>(player_id)) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span>.[[<span class="st">&quot;type&quot;</span>]] <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">table</span>(.) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">as.data.frame</span>() <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">setNames</span>(<span class="kw">c</span>(<span class="st">&quot;variable&quot;</span>,<span class="st">&quot;count&quot;</span>))
+
+ggplot2<span class="op">::</span><span class="kw">ggplot</span>(<span class="dt">data =</span> type_events_missing_player_ids,
+                <span class="dt">mapping =</span> ggplot2<span class="op">::</span><span class="kw">aes</span>(<span class="dt">x =</span> variable, <span class="dt">y =</span> count)) <span class="op">+</span>
+<span class="st">  </span>ggplot2<span class="op">::</span><span class="kw">geom_col</span>()</code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>Almost all missing player ids occur when the event has nothing to do with a specific player. Makes sense. There’s just one exception: free kick won. We imagine a free kick is always won by a player. If not, why say won when there can’t be a winner? Let’s see if this is just an accident de parcours by checking if there are also free kicks won where the player id is included.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">free_kick_won_missing_values &lt;-<span class="st"> </span>events <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">mutate</span>(<span class="dt">has_player_id =</span> dplyr<span class="op">::</span><span class="kw">if_else</span>(<span class="kw">is.na</span>(player_id), <span class="ot">FALSE</span>, <span class="ot">TRUE</span>)) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(type <span class="op">==</span><span class="st"> &quot;free kick won&quot;</span>) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">group_by</span>(has_player_id) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">n =</span> <span class="kw">n</span>())
+
+nr_truly_incorrect_missing_values &lt;-<span class="st"> </span>free_kick_won_missing_values <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(has_player_id <span class="op">==</span><span class="st"> </span><span class="ot">FALSE</span>) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span>.[[<span class="st">&quot;n&quot;</span>]]
+
+ggplot2<span class="op">::</span><span class="kw">ggplot</span>(<span class="dt">data =</span> free_kick_won_missing_values,
+                <span class="dt">mapping =</span> ggplot2<span class="op">::</span><span class="kw">aes</span>(<span class="dt">x =</span> has_player_id, <span class="dt">y =</span> n)) <span class="op">+</span>
+<span class="st">  </span>ggplot2<span class="op">::</span><span class="kw">geom_col</span>()</code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>Most <em>free kick won</em> events actually do have a player id linked to them. These 11 which don’t are clearly a mistake. Now we have to decide whether to discard these events or not. Certainly we shouldn’t assume that just because the player ids are not there the rest of the event information is faulty as well. Let’s zoom in on these <em>free kick won</em> events where the player id is missing.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">free_kick_won_missing_player_id &lt;-<span class="st"> </span>events <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(type <span class="op">==</span><span class="st"> &quot;free kick won&quot;</span> <span class="op">&amp;</span><span class="st"> </span><span class="kw">is.na</span>(player_id))
+
+free_kick_won_missing_player_id</code></pre></div>
+<pre><code>##             type player_id time game_id
+## 1  free kick won      &lt;NA&gt; 2133   22456
+## 2  free kick won      &lt;NA&gt; 3450   22470
+## 3  free kick won      &lt;NA&gt; 5270   22482
+## 4  free kick won      &lt;NA&gt; 5125   14079
+## 5  free kick won      &lt;NA&gt; 4952   14090
+## 6  free kick won      &lt;NA&gt; 5649   14170
+## 7  free kick won      &lt;NA&gt; 2588   14307
+## 8  free kick won      &lt;NA&gt;  996   14325
+## 9  free kick won      &lt;NA&gt; 4591   14403
+## 10 free kick won      &lt;NA&gt; 2835   14370
+## 11 free kick won      &lt;NA&gt; 3314   22396</code></pre>
+<p>There seems nothing wrong with these events except for the fact the player id is missing. For reasons of consistency we decide to keep these events in the dataset.</p>
+</div>
+<div id="missing-time-variable" class="section level4">
+<h4>Missing time variable</h4>
+<p>The time variable is missing for a number of events as well. What kind of events don’t have a timestamp?</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">time_missing_by_event_type &lt;-<span class="st"> </span>events <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">group_by</span>(type) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">summarise</span>(<span class="dt">n =</span> <span class="kw">sum</span>(<span class="kw">is.na</span>(time))) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">filter</span>(n <span class="op">!=</span><span class="st"> </span><span class="dv">0</span>)
+
+ggplot2<span class="op">::</span><span class="kw">ggplot</span>(<span class="dt">data =</span> time_missing_by_event_type,
+                <span class="dt">mapping =</span> ggplot2<span class="op">::</span><span class="kw">aes</span>(<span class="dt">x =</span> type, <span class="dt">y =</span> n)) <span class="op">+</span>
+<span class="st">  </span>ggplot2<span class="op">::</span><span class="kw">geom_col</span>()</code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>It’s normal there’s no time information for these events.</p>
+</div>
+</div>
 </div>
 <div id="games" class="section level2">
 <h2>Games</h2>
+<p>We’ll do the same as we did for events:</p>
+<ul>
+<li>verify we have enough data</li>
+<li>investigate the missing values</li>
+</ul>
+<div id="enough-games" class="section level3">
+<h3>Enough games?</h3>
+<p>We have info about 760. In itself this doesn’t mean anything. The games dataset is only useful if we can link it to the events dataset (the data we’re really interested in). The games dataset is linked to the events dataset through the game id. So to verify if our games dataset is large enough we must make sure each game id of events occurs in games as well.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">game_ids_events &lt;-<span class="st"> </span><span class="kw">unique</span>(events<span class="op">$</span>game_id)
+game_ids_games &lt;-<span class="st"> </span><span class="kw">unique</span>(games<span class="op">$</span>game_id)
+
+<span class="kw">all</span>(game_ids_events <span class="op">%in%</span><span class="st"> </span>game_ids_games)</code></pre></div>
+<pre><code>## [1] TRUE</code></pre>
+<p>This is the case so we have enough games.</p>
+</div>
+<div id="missing-values-1" class="section level3">
+<h3>Missing values</h3>
+</div>
 </div>
 <div id="players" class="section level2">
 <h2>Players</h2>

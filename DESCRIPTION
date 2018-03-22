@@ -11,10 +11,12 @@ LazyData: true
 Depends:
     DiagrammeR
 Imports:
+    devtools,
     purrr,
     tidyr,
     dplyr,
     stringr,
+    ggplot2,
     httr,
     here,
     roxygen2
