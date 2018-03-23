@@ -94,7 +94,7 @@ The best way to understand the diagram above is to think in a recursive way. We 
 
 Data is saved in groups of 10 matches to avoid memory issues. Because getting the data can take quite a lot of time we limit ourselves to two seasons (2017/18 and 2016/17). 
 
-```{r get_events, eval = FALSE}
+```{r get_events}
 
 # season ids
 competitions <- get_competitions()
@@ -104,36 +104,38 @@ competition_ids <- extract_competition_ids(response = competitions,
 season_ids <- competition_ids[["season"]]
 competition_id <- competition_ids[["competition"]]
 
-# match ids
-match_ids <- season_ids %>%
-  map(~get_fixtures(competition_id, .)) %>%
-  map(~extract_match_ids(.)) %>%
-  .[c("2017/18","2016/17")] %>% # for convenience reasons less data
-  flatten_chr(.)
+selected_seasons <- c("2017/18","2016/17")
 
-# events and game info
-match_details <- match_ids %>%
-  # sample(., size = 10) %>% # for convenience reasons less data
-  map(~get_textstream(.)) %>%
-  map(~extract_match_details(.))
-
-# save
-ind <- 1:length(match_details)
-nr_of_matches_per_group <- 10
-split_ind <- split(ind, ceiling(seq_along(ind)/nr_of_matches_per_group))
-
-group_nrs <- as.character(1:length(split_ind))
-
-split_match_details <-  split_ind %>%
-  map(~match_details[.]) # if not split memory will probably be not sufficient enough
-
-walk2(.x = split_match_details,
-      .y = group_nrs,
-      .f = ~save_events(list_match_details = .x, group_nr = .y))
-
-walk2(.x = split_match_details,
-      .y = group_nrs,
-      .f = ~save_games(list_match_details = .x, group_nr = .y))
+# # match ids
+# match_ids <- season_ids %>%
+#   map(~get_fixtures(competition_id, .)) %>%
+#   map(~extract_match_ids(.)) %>%
+#   .[selected_seasons] %>% # for convenience reasons less data
+#   flatten_chr(.)
+# 
+# # events and game info
+# match_details <- match_ids %>%
+#   # sample(., size = 10) %>% # for convenience reasons less data
+#   map(~get_textstream(.)) %>%
+#   map(~extract_match_details(.))
+# 
+# # save
+# ind <- 1:length(match_details)
+# nr_of_matches_per_group <- 10
+# split_ind <- split(ind, ceiling(seq_along(ind)/nr_of_matches_per_group))
+# 
+# group_nrs <- as.character(1:length(split_ind))
+# 
+# split_match_details <-  split_ind %>%
+#   map(~match_details[.]) # if not split memory will probably be not sufficient enough
+# 
+# walk2(.x = split_match_details,
+#       .y = group_nrs,
+#       .f = ~save_events(list_match_details = .x, group_nr = .y))
+# 
+# walk2(.x = split_match_details,
+#       .y = group_nrs,
+#       .f = ~save_games(list_match_details = .x, group_nr = .y))
 
 ```
 
@@ -155,12 +157,7 @@ So the first call to *players* gives us a list of all players with their respect
 ```{r get_player, eval=FALSE}
 
 # season ids
-competitions <- get_competitions()
-competition_ids <- extract_competition_ids(response = competitions,
-                                           competition = "Premier League")
-
-selected_seasons <- c("2017/18","2016/17")
-season_ids <- competition_ids[["season"]][selected_seasons]
+season_ids <- season_ids[selected_seasons]
 
 # list of player ids
 player_ids <- season_ids %>% 
@@ -168,22 +165,9 @@ player_ids <- season_ids %>%
   map(~extract_player_ids(response = .)) %>% 
   unlist()
 
-# player details of each player
-competition_id = competition_ids[["competition"]]
-
-player_details <- player_ids %>%
-  map(~get_player(player_id = ., competition_id)) %>%
-  map(~extract_player_details(response = .))
-
-# save
-save_identifiers <- 1:length(player_details)
-
-df_player_details <- player_details %>% 
-  map(~player_details_to_df(.))
-
-walk2(.x = df_player_details,
-      .y = save_identifiers,
-      .f = ~save_player_details(.x, .y))
+# get info for each player and save
+player_ids %>%
+  walk(~save_player_info(player_id = ., competition_id))
 
 ```
 

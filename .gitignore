@@ -5,3 +5,5 @@ inst/doc
 .Rproj*
 .Rproj.user
 
+# temp data
+data/temp/

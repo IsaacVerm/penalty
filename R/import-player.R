@@ -10,36 +10,56 @@ get_player <- function(player_id, competition_id) {
   return(response)
 }
 
+save_player_details <- function(player_details) {
+  random_identifier <- as.character(sample(1000000000,1))
+
+  save_name <- paste(random_identifier, "import-df_player.RData", sep = "-")
+  save(player_details, file = paste(here::here(),"data","temp", save_name, sep = "/"))
+}
+
 #' @import httr
-#' @import purrr
 extract_player_details <- function(response) {
-  # sometimes response is succesful but empty
+
+  # columns to extract
+  columns_basic_info <- c("player_id","position","birthdate","first_name","last_name")
+
+  # create empty dataframe if response is empty
+  create_empty_df <- function(column_names) {
+    df <- as.data.frame(matrix(data = rep(NA, length(column_names)),
+                               nrow = 1))
+    names(df) <- column_names
+
+    return(df)
+  }
+
   empty_response <- length(response$content) == 0
   if (empty_response) {
-    return("no player details found")
+    return(create_empty_df(columns_basic_info))
   }
 
   # response body
-  body <- content(response)
+  body <- httr::content(response)
 
-  # stable attributes
-  entity <- body[["entity"]]
-  name <- entity[["name"]]
+  # default values if a variable is missing
+  player_details <- data.frame(player_id = NA,
+                               position = NA,
+                               birthdate = NA,
+                               first_name = NA,
+                               last_name = NA)
 
-  player_details <- list(position = entity[["info"]][["positionInfo"]],
-                         birthdate = entity[["birth"]][["date"]][["label"]],
-                         name = list(first = name[["first"]],
-                                     last = name[["last"]]))
-
-  # stats
-  player_details$stats = list()
-  stats <- body[["stats"]]
-
-  names(stats) <- stats %>%
-    map_chr(~.[["name"]])# give object stats names according to stats in each element
-
-  player_details[["stats"]][["time_played"]] <- list(appearances = stats[["appearances"]][["value"]],
-                                                     minutes_played = stats[["mins_played"]][["value"]])
+  # access player details
+  try(player_details[["player_id"]] <- body[["entity"]][["id"]], silent = TRUE)
+  try(player_details[["position"]] <- body[["entity"]][["info"]][["positionInfo"]], silent = TRUE)
+  try(player_details[["birthdate"]] <- body[["entity"]][["birth"]][["date"]][["label"]], silent = TRUE)
+  try(player_details[["first_name"]] <- body[["entity"]][["name"]][["first"]], silent = TRUE)
+  try(player_details[["last_name"]] <- body[["entity"]][["name"]][["last"]], silent = TRUE)
 
   return(player_details)
 }
+
+save_player_info <- function(player_id, competition_id) {
+  player <- get_player(player_id, competition_id)
+  player_details <- extract_player_details(player)
+  save_player_details(player_details)
+}
+

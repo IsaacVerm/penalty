@@ -9,31 +9,31 @@ test_that("returns response succesfully", {
 
 context("extract_player_details")
 
-test_that("returns named list", {
-  response <- get_player(player_id = "10428", competition_id = "1")
-  player_details <- extract_player_details(response)
+full_response <- get_player(player_id = "10428", competition_id = "1")
+full_player_details <- extract_player_details(full_response)
 
-  expect_is(player_details, "list")
-  expect_is(names(player_details), "character")
+empty_response = get_player(player_id = "94289", competition_id = "1")
+empty_player_details <- extract_player_details(empty_response)
+
+expected_column_names <- c("player_id","position","birthdate","first_name","last_name")
+
+test_that("returns dataframe", {
+  expect_is(full_player_details, "data.frame")
+  expect_is(empty_player_details, "data.frame")
 })
 
-test_that("returns position, birthdate, name and stats", {
-  response <- get_player(player_id = "10428", competition_id = "1")
-  player_details <- extract_player_details(response)
-
-  not_empty <- function(field) expect_true(nchar(field) > 0)
-
-  expect_named(player_details, c("position","birthdate","name","stats"))
-  lapply(X = player_details[c("position","birthdate")],
-         FUN = not_empty)
-  lapply(X = player_details[["name"]],
-         FUN = not_empty) # just check if something is returned
+test_that("returns player_id, position, birthdate, first_name, last_name", {
+  expect_named(full_player_details, expected_column_names)
 })
 
-test_that("returns stats related to time played: appearances and minutes played", {
-  response <- get_player(player_id = "10428", competition_id = "1")
-  player_details <- extract_player_details(response)
+test_that("all variables empty dataframe are NA", {
+  na_by_variable <- apply(X = empty_player_details,
+                          MARGIN = 1,
+                          FUN = function(x) is.na(x))
 
-  lapply(X = player_details[["stats"]][['time_played']],
-         FUN = function(x) expect_is(x, "numeric"))
+  expect_true(all(na_by_variable))
+})
+
+test_that("empty response still has all column names", {
+  expect_named(empty_player_details, expected_column_names)
 })
